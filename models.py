@@ -61,5 +61,5 @@ class Show(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(), nullable=False)
     start_time = db.Column(db.DateTime, nullable=False)
-    venue = db.relationship('venue', secondary=venue_show, backref=db.backref('show', lazy=True))
-    artist = db.relationship('artist', secondary=artist_show, backref=db.backref('show', lazy=True))
+    venue = db.relationship('Venue', secondary=venue_show, backref=db.backref('show', lazy=True))
+    artist = db.relationship('Artist', secondary=artist_show, backref=db.backref('show', lazy=True))
