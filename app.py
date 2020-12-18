@@ -90,14 +90,18 @@ def show_venue(venue_id):
   # shows the venue page with the given venue_id
   # TODO: replace with real venue data from the venues table, using venue_id
   selected_venue = Venue.query.get(venue_id)
-  shows = Show.query.filter_by(venue_id=venue_id).all()
-  artists = Artist.query.all()
+  shows = (db.session
+            .query(Show, Artist.name, Artist.image_link)
+            .filter_by(venue_id=venue_id)
+            .join(Artist, Show.artist_id == Artist.id)
+            .all())
 
   past_shows = util.list_venue_past_shows(shows)
-  past_shows_list = [util.format_show_info_for_venue(show, artists) for show in past_shows]
-
+  past_shows_list = [util.format_show_info_for_venue(show_info[0], show_info[1], show_info[2]) 
+                     for show_info in past_shows]
   upcoming_shows = util.list_venue_upcoming_shows(shows)
-  upcoming_shows_list = [util.format_show_info_for_venue(show, artists) for show in upcoming_shows]
+  upcoming_shows_list = [util.format_show_info_for_venue(show_info[0], show_info[1], show_info[2]) 
+                         for show_info in upcoming_shows]
 
   data = {
     "id": selected_venue.id,
@@ -226,8 +230,11 @@ def show_artist(artist_id):
   # shows the venue page with the given venue_id
   # TODO: replace with real venue data from the venues table, using venue_id
   artist = Artist.query.get(artist_id)
-  shows = Show.query.filter_by(artist_id=artist_id).all()
-  venues = Venue.query.all()
+  shows = (db.session
+            .query(Show, Venue.name, Venue.image_link)
+            .filter_by(artist_id=artist_id)
+            .join(Venue, Show.venue_id == Venue.id)
+            .all())
 
   past_shows = util.list_artist_past_shows(shows)
   upcoming_shows = util.list_artist_upcoming_shows(shows)
@@ -244,8 +251,10 @@ def show_artist(artist_id):
     "seeking_venue": artist.seeking_venue,
     "seeking_description": artist.seeking_description,
     "image_link": artist.image_link,
-    "past_shows": [util.format_show_info_for_artist(show, venues) for show in past_shows],
-    "upcoming_shows": [util.format_show_info_for_artist(show, venues) for show in upcoming_shows],
+    "past_shows": [util.format_show_info_for_artist(show_info[0], show_info[1], show_info[2]) 
+                   for show_info in past_shows],
+    "upcoming_shows": [util.format_show_info_for_artist(show_info[0], show_info[1], show_info[2]) 
+                       for show_info in upcoming_shows],
     "past_shows_count": len(past_shows),
     "upcoming_shows_count": len(upcoming_shows),
   }

@@ -1,9 +1,10 @@
 import datetime as dt
+from sqlalchemy import func
 
 
 def search_by_name_pattern(class_obj, name_pattern):
-	search = "%{}%".format(name_pattern)
-	matching_obj_list = class_obj.query.filter(class_obj.name.like(search)).order_by('id').all()
+	search = "%{}%".format(name_pattern.lower())
+	matching_obj_list = class_obj.query.filter(class_obj.name.ilike(search)).order_by('id').all()
 	return matching_obj_list
 
 
