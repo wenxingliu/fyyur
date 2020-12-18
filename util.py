@@ -11,41 +11,63 @@ def count_number_of_shows_at_venue(venue_id, shows):
 	return len([show for show in shows if show.venue_id == venue_id])
 
 
-def list_past_shows(venue_id, shows, timestamp=None):
+def list_venue_past_shows(shows, timestamp=None):
 	timestamp = None or dt.datetime.utcnow()
-	past_shows = [show for show in shows 
-				  if show.venue_id == venue_id and show.start_time < timestamp]
+	past_shows = [show for show in shows if show.start_time < timestamp]
 	return past_shows
 
 
-def list_upcoming_shows(venue_id, shows, timestamp=None):
+def list_venue_upcoming_shows(shows, timestamp=None):
 	timestamp = None or dt.datetime.utcnow()
-	upcoming_shows = [show for show in shows 
-					  if show.venue_id == venue_id and show.start_time >= timestamp]
+	upcoming_shows = [show for show in shows if show.start_time >= timestamp]
 	return upcoming_shows
 
-def artist_upcoming_shows(artist_id, shows, timestamp=None):
+
+def list_artist_upcoming_shows(shows, timestamp=None):
 	timestamp = None or dt.datetime.utcnow()
-	upcoming_shows = [show for show in shows 
-					  if show.artist_id == artist_id and show.start_time >= timestamp]
+	upcoming_shows = [show for show in shows if show.start_time >= timestamp]
 	return upcoming_shows
 
-def _find_matching_artist(artist_id, artists):
+
+def list_artist_past_shows(shows, timestamp=None):
+	timestamp = None or dt.datetime.utcnow()
+	past_shows = [show for show in shows if show.start_time < timestamp]
+	return past_shows
+
+
+def find_matching_artist(artist_id, artists):
 	for artist in artists:
 		if artist.id == artist_id:
 			return artist
+
+
+def find_matching_venue(venue_id, venues):
+	for venue in venues:
+		if venue.id == venue_id:
+			return venue
 
 
 def datetime_to_str(datetime_obj, format="%Y-%m-%dT%H:%M:%S.%fZ"):
 	return datetime_obj.strftime(format)
 
 
-def format_show_info(show, artists):
-	artist = _find_matching_artist(show.artist_id, artists)
+def format_show_info_for_venue(show, artists):
+	artist = find_matching_artist(show.artist_id, artists)
 	show_info = {
 		"artist_id": show.artist_id,
 		"artist_name": artist.name,
 		"artist_image_link": artist.image_link,
+		"start_time": datetime_to_str(show.start_time)
+		}
+	return show_info
+
+
+def format_show_info_for_artist(show, venues):
+	venue = find_matching_venue(show.venue_id, venues)
+	show_info = {
+		"venue_id": show.venue_id,
+		"venue_name": venue.name,
+		"venue_image_link": venue.image_link,
 		"start_time": datetime_to_str(show.start_time)
 		}
 	return show_info
