@@ -6,7 +6,7 @@ from collections import defaultdict
 import json
 import dateutil.parser
 import babel
-from flask import render_template, request, Response, flash, redirect, url_for
+from flask import render_template, request, Response, flash, redirect, url_for, jsonify
 from flask_moment import Moment
 import logging
 from logging import Formatter, FileHandler
@@ -134,17 +134,17 @@ def create_venue_submission():
   # TODO: modify data to be the data object returned from db insertion
   error = False
   try:
-    venue = Venue(name=request.form['name'], 
-                  genres=','.join(request.form['genres']),
-                  address=request.form['address'],  
-                  city=request.form['city'],
-                  state=request.form['state'],
-                  phone=request.form['phone'],
-                  website=request.form['website'],
-                  facebook_link=request.form['facebook_link'],
-                  seeking_talent=request.form['seeking_talent'],
-                  seeking_description=request.form['seeking_description'],
-                  image_link=request.form['image_link'])
+    venue = Venue(name=request.form.get('name'), 
+                  genres=request.form.get('genres'),
+                  address=request.form.get('address'),  
+                  city=request.form.get('city'),
+                  state=request.form.get('state'),
+                  phone=request.form.get('phone'),
+                  website=request.form.get('website'),
+                  facebook_link=request.form.get('facebook_link'),
+                  seeking_talent=util.boolean_str_to_bool(request.form.get('seeking_talent')),
+                  seeking_description=request.form.get('seeking_description'),
+                  image_link=request.form.get('image_link'))
     db.session.add(venue)
     db.session.commit()
   except:
@@ -154,7 +154,7 @@ def create_venue_submission():
     db.session.close()
 
   if error:
-    flash('An error occurred. Venue ' + venue.name + ' could not be listed.')
+    flash('An error occurred. Venue ' + request.form['name'] + ' could not be listed.')
   else:
     # on successful db insert, flash success
     flash('Venue ' + request.form['name'] + ' was successfully listed!')
@@ -167,6 +167,14 @@ def create_venue_submission():
 def delete_venue(venue_id):
   # TODO: Complete this endpoint for taking a venue_id, and using
   # SQLAlchemy ORM to delete a record. Handle cases where the session commit could fail.
+  try:
+    Venue.query.filter_by(id=venue_id).delete()
+    db.session.commit()
+  except:
+    db.session.rollback()
+  finally:
+    db.session.close()
+  return jsonify({ 'success': True })
 
   # BONUS CHALLENGE: Implement a button to delete a Venue on a Venue Page, have it so that
   # clicking that button delete it from the db then redirect the user to the homepage
@@ -177,16 +185,13 @@ def delete_venue(venue_id):
 @app.route('/artists')
 def artists():
   # TODO: replace with real data returned from querying the database
-  data=[{
-    "id": 4,
-    "name": "Guns N Petals",
-  }, {
-    "id": 5,
-    "name": "Matt Quevedo",
-  }, {
-    "id": 6,
-    "name": "The Wild Sax Band",
-  }]
+  artists = Artist.query.order_by('id').all()
+  data = []
+  for artist in artists:
+    data.append({
+      "id": artist.id,
+      "name": artist.name
+      })
   return render_template('pages/artists.html', artists=data)
 
 @app.route('/artists/search', methods=['POST'])
@@ -194,14 +199,25 @@ def search_artists():
   # TODO: implement search on artists with partial string search. Ensure it is case-insensitive.
   # seach for "A" should return "Guns N Petals", "Matt Quevado", and "The Wild Sax Band".
   # search for "band" should return "The Wild Sax Band".
+  matching_artists = util.search_by_name_pattern(Artist, request.form.get('search_term', ''))
+  shows = Show.query.all()
+  
+  artist_info_list = []
+  for artist in matching_artists:
+    upcoming_shows = util.artist_upcoming_shows(artist.id, shows)
+
+    artist_info = {
+    "id": artist.id,
+    "name": artist.name,
+    "num_upcoming_shows": len(upcoming_shows)
+    }
+    artist_info_list.append(artist_info)
+
   response={
-    "count": 1,
-    "data": [{
-      "id": 4,
-      "name": "Guns N Petals",
-      "num_upcoming_shows": 0,
-    }]
+    "count": len(matching_artists),
+    "data": artist_info_list
   }
+
   return render_template('pages/search_artists.html', results=response, search_term=request.form.get('search_term', ''))
 
 @app.route('/artists/<int:artist_id>')

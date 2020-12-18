@@ -24,6 +24,12 @@ def list_upcoming_shows(venue_id, shows, timestamp=None):
 					  if show.venue_id == venue_id and show.start_time >= timestamp]
 	return upcoming_shows
 
+def artist_upcoming_shows(artist_id, shows, timestamp=None):
+	timestamp = None or dt.datetime.utcnow()
+	upcoming_shows = [show for show in shows 
+					  if show.artist_id == artist_id and show.start_time >= timestamp]
+	return upcoming_shows
+
 def _find_matching_artist(artist_id, artists):
 	for artist in artists:
 		if artist.id == artist_id:
@@ -43,3 +49,10 @@ def format_show_info(show, artists):
 		"start_time": datetime_to_str(show.start_time)
 		}
 	return show_info
+
+
+def boolean_str_to_bool(bool_str):
+	if bool_str == 'Yes':
+		return True
+	else:
+		return False
