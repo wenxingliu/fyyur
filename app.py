@@ -257,53 +257,107 @@ def show_artist(artist_id):
 def edit_artist(artist_id):
   form = ArtistForm()
   artist = Artist.query.get(artist_id)
-  artist={
+  artist_info = {
     "id": artist_id,
-    "name": request.form.get("name"),
-    "genres": request.form.get("genres", "").split(","),
-    "city": request.form.get("city"),
-    "state": request.form.get("state"),
-    "phone": request.form.get("phone"),
-    "website": request.form.get("website"),
-    "facebook_link": request.form.get("facebook_link"),
-    "seeking_venue": util.boolean_str_to_bool(request.form.get("seeking_venue")),
-    "seeking_description": request.form.get("seeking_description"),
-    "image_link": request.form.get("image_link")
+    "name": artist.name,
+    "genres": form.genres,
+    "city": form.city,
+    "state": form.state,
+    "phone": form.phone,
+    "website": form.facebook_link,
+    "seeking_venue": form.seeking_venue,
+    "seeking_description": form.seeking_description,
+    "image_link": form.image_link
   }
   # TODO: populate form with fields from artist with ID <artist_id>
-  return render_template('forms/edit_artist.html', form=form, artist=artist)
+  return render_template('forms/edit_artist.html', form=form, artist=artist_info)
 
 @app.route('/artists/<int:artist_id>/edit', methods=['POST'])
 def edit_artist_submission(artist_id):
   # TODO: take values from the form submitted, and update existing
   # artist record with ID <artist_id> using the new attributes
+  error = False
+  try:
+    artist = Artist.query.get(artist_id)
+    artist.name = request.form.get("name")
+    artist.genres = request.form.get("genres", "")
+    artist.city = request.form.get("city")
+    artist.state = request.form.get("state")
+    artist.phone = request.form.get("phone")
+    artist.website = request.form.get("website")
+    artist.facebook_link = request.form.get("facebook_link")
+    artist.seeking_venue = util.boolean_str_to_bool(request.form.get("seeking_venue"))
+    artist.seeking_description = request.form.get("seeking_description")
+    artist.image_link = request.form.get("image_link")
+    
+    db.session.add(artist)
+    db.session.commit()
+  except:
+    error = True
+    db.session.rollback()
+  finally:
+    db.session.close()
+
+  if error:
+    flash('An error occurred. Artist ' + request.form['name'] + ' could not be updated.')
+  else:
+    # on successful db insert, flash success
+    flash('Artist ' + request.form['name'] + ' was successfully updated!')
 
   return redirect(url_for('show_artist', artist_id=artist_id))
 
 @app.route('/venues/<int:venue_id>/edit', methods=['GET'])
 def edit_venue(venue_id):
   form = VenueForm()
-  venue={
+  venue = Venue.query.get(venue_id)
+  venue_info = {
     "id": 1,
-    "name": "The Musical Hop",
-    "genres": ["Jazz", "Reggae", "Swing", "Classical", "Folk"],
-    "address": "1015 Folsom Street",
-    "city": "San Francisco",
-    "state": "CA",
-    "phone": "123-123-1234",
-    "website": "https://www.themusicalhop.com",
-    "facebook_link": "https://www.facebook.com/TheMusicalHop",
-    "seeking_talent": True,
-    "seeking_description": "We are on the lookout for a local artist to play every two weeks. Please call us.",
-    "image_link": "https://images.unsplash.com/photo-1543900694-133f37abaaa5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=400&q=60"
+    "name": venue.name,
+    "genres": form.genres,
+    "address": form.address,
+    "city": form.city,
+    "state": form.state,
+    "phone": form.phone,
+    "website": form.website,
+    "facebook_link": form.facebook_link,
+    "seeking_talent": form.seeking_talent,
+    "seeking_description": form.seeking_description,
+    "image_link": form.image_link
   }
   # TODO: populate form with values from venue with ID <venue_id>
-  return render_template('forms/edit_venue.html', form=form, venue=venue)
+  return render_template('forms/edit_venue.html', form=form, venue=venue_info)
 
 @app.route('/venues/<int:venue_id>/edit', methods=['POST'])
 def edit_venue_submission(venue_id):
   # TODO: take values from the form submitted, and update existing
   # venue record with ID <venue_id> using the new attributes
+  error = False
+  try:
+    venue = Venue.query.get(venue_id)
+    venue.name = request.form.get("name")
+    venue.genres = request.form.get("genres", "")
+    venue.city = request.form.get("city")
+    venue.state = request.form.get("state")
+    venue.phone = request.form.get("phone")
+    venue.website = request.form.get("website")
+    venue.facebook_link = request.form.get("facebook_link")
+    venue.seeking_talent = util.boolean_str_to_bool(request.form.get("seeking_talent"))
+    venue.seeking_description = request.form.get("seeking_description")
+    venue.image_link = request.form.get("image_link")
+    
+    db.session.add(venue)
+    db.session.commit()
+  except:
+    error = True
+    db.session.rollback()
+  finally:
+    db.session.close()
+
+  if error:
+    flash('An error occurred. Venue ' + request.form['name'] + ' could not be updated.')
+  else:
+    # on successful db insert, flash success
+    flash('Venue ' + request.form['name'] + ' was successfully updated!')
   return redirect(url_for('show_venue', venue_id=venue_id))
 
 #  Create Artist
@@ -319,9 +373,33 @@ def create_artist_submission():
   # called upon submitting the new artist listing form
   # TODO: insert form data as a new Venue record in the db, instead
   # TODO: modify data to be the data object returned from db insertion
+  error = False
+  try:
+    artist = Artist(
+      name=request.form['name'],
+      city=request.form['city'],
+      state=request.form['state'],
+      phone=request.form['phone'],
+      genres=request.form['genres'],
+      image_link=request.form['image_link'],
+      website=request.form['website'],
+      facebook_link=request.form['facebook_link'],
+      seeking_venue=util.boolean_str_to_bool(request.form['seeking_venue']),
+      seeking_description=request.form['seeking_description']
+      )
+    db.session.add(artist)
+    db.session.commit()
+  except:
+    error=True
+    db.session.rollback()
+  finally:
+    db.session.close()
 
-  # on successful db insert, flash success
-  flash('Artist ' + request.form['name'] + ' was successfully listed!')
+  if error:
+    flash('An error occurred. Artist ' + request.form['name'] + ' could not be listed!')
+  else:
+    # on successful db insert, flash success
+    flash('Artist ' + request.form['name'] + ' was successfully listed!')
   # TODO: on unsuccessful db insert, flash an error instead.
   # e.g., flash('An error occurred. Artist ' + data.name + ' could not be listed.')
   return render_template('pages/home.html')

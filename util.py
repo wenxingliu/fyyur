@@ -73,8 +73,14 @@ def format_show_info_for_artist(show, venues):
 	return show_info
 
 
-def boolean_str_to_bool(bool_str):
+def boolean_str_to_bool(bool_str) -> bool:
 	if bool_str == 'Yes':
 		return True
 	else:
 		return False
+
+def bool_to_boolean_str(bool_val: bool):
+	if bool_val:
+		return "Yes"
+	else:
+		return "No"
