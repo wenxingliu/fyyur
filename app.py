@@ -135,7 +135,7 @@ def create_venue_submission():
   error = False
   try:
     venue = Venue(name=request.form.get('name'), 
-                  genres=request.form.get('genres'),
+                  genres=','.join(request.form.getlist('genres')),
                   address=request.form.get('address'),  
                   city=request.form.get('city'),
                   state=request.form.get('state'),
@@ -205,7 +205,7 @@ def search_artists():
   
   artist_info_list = []
   for artist in matching_artists:
-    upcoming_shows = util.artist_upcoming_shows(artist.id, shows)
+    upcoming_shows = util.list_artist_upcoming_shows(shows)
 
     artist_info = {
     "id": artist.id,
@@ -281,7 +281,7 @@ def edit_artist_submission(artist_id):
   try:
     artist = Artist.query.get(artist_id)
     artist.name = request.form.get("name")
-    artist.genres = request.form.get("genres", "")
+    artist.genres = ",".join(request.form.getlist("genres"))
     artist.city = request.form.get("city")
     artist.state = request.form.get("state")
     artist.phone = request.form.get("phone")
@@ -312,7 +312,7 @@ def edit_venue(venue_id):
   form = VenueForm()
   venue = Venue.query.get(venue_id)
   venue_info = {
-    "id": 1,
+    "id": venue_id,
     "name": venue.name,
     "genres": form.genres,
     "address": form.address,
@@ -336,7 +336,7 @@ def edit_venue_submission(venue_id):
   try:
     venue = Venue.query.get(venue_id)
     venue.name = request.form.get("name")
-    venue.genres = request.form.get("genres", "")
+    venue.genres = ",".join(request.form.getlist("genres"))
     venue.city = request.form.get("city")
     venue.state = request.form.get("state")
     venue.phone = request.form.get("phone")
@@ -381,7 +381,7 @@ def create_artist_submission():
       city=request.form['city'],
       state=request.form['state'],
       phone=request.form['phone'],
-      genres=request.form['genres'],
+      genres=",".join(request.form.getlist('genres')),
       image_link=request.form['image_link'],
       website=request.form['website'],
       facebook_link=request.form['facebook_link'],
