@@ -169,6 +169,7 @@ def delete_venue(venue_id):
   # SQLAlchemy ORM to delete a record. Handle cases where the session commit could fail.
   try:
     Venue.query.filter_by(id=venue_id).delete()
+    Show.query.filter_by(venue_id=venue_id).delete()
     db.session.commit()
   except:
     db.session.rollback()
@@ -425,7 +426,7 @@ def shows():
       "artist_id": artist.id,
       "artist_name": artist.name,
       "artist_image_link": artist.image_link,
-      "start_time": datetime_to_str(show.start_time)
+      "start_time": util.datetime_to_str(show.start_time)
       })
   return render_template('pages/shows.html', shows=data)
 
